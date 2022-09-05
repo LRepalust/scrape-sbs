@@ -5,14 +5,15 @@
 
 
 # useful for handling different item types with a single interface
-from scrapy.exceptions import DropItem
+from itemadapter import ItemAdapter
 
 
-
-class SbsPipeline:
-    def process_item(self, item, spider):
-        def process_item(self, item, spider):
-            if not (all(item.values())):
-                raise (DropItem())
-            else:
-                return item
+def process_item(self, item, spider):
+    adapter = ItemAdapter(item)
+    if self.db[self.collection_name].find_one({'id': adapter['id']}) != None:
+        dado = self.db[self.collection_name].find_one_and_update({'id': adapter['id']})
+        ## ----> raise DropItem(f"Duplicate item found: {item!r}") <------
+        print(f"Duplicate item found: {dado!r}")
+    else:
+        self.db[self.collection_name].insert_one(ItemAdapter(item).asdict())
+    return item
