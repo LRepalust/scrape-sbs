@@ -60,7 +60,8 @@ def extend(value):
 def get_lot_number(value):
     p = r"\b(?:LOT|Lot)\b\s\d+"
     results = re.findall(p, value)
-    return results
+    for i, result in enumerate(results):
+        return result
 
 
 def get_lot_description(value):
@@ -68,6 +69,17 @@ def get_lot_description(value):
     result = re.search(p, value)
     if result:
         return re.split(p, value)
+
+def no_dot(value):
+    p = r"[a-zA-Z]"
+    result = re.findall(p, value)
+    if result:
+        return value
+
+
+
+
+
 
 
 class SbsOverview(scrapy.Item):
@@ -81,5 +93,5 @@ class SbsOverview(scrapy.Item):
     end_date = scrapy.Field(input_processor=MapCompose(end_date), output_processor=TakeFirst())
     extension_options = scrapy.Field(input_processor=MapCompose(extend), output_processor=TakeFirst())
     lot_number = scrapy.Field(input_processor=MapCompose(get_lot_number))
-    lot_description = scrapy.Field(input_processor=MapCompose(get_lot_description))
+    lot_description = scrapy.Field(input_processor=MapCompose(get_lot_description, no_dot))
     supplier_name = scrapy.Field()
