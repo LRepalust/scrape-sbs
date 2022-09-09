@@ -1,5 +1,5 @@
 import scrapy
-from sbs.spiders.items import SbsOverview
+from sbs.items import SbsItems
 from scrapy.loader import ItemLoader
 
 
@@ -9,13 +9,13 @@ class SbsSpider(scrapy.Spider):
     start_urls = ['https://sbs.nhs.uk/proc-framework-agreements-support']
 
     def parse(self, response):
-        urls = response.css('h3>a::attr(href)')[0:4].extract()
+        urls = response.css('#maincontent .container + .a-panel.a-panel--list a.item__link::attr(href)').getall()
         for url in urls:
             url = response.urljoin(url)
             yield scrapy.Request(url=url, callback=self.parse_services)
 
     def parse_services(self, response):
-        urls = response.css('p>a.a_body__link::attr(href)').extract()
+        urls = response.css('p>a.a_body__link::attr(href)').getall()
         for url in urls:
             if '/fas' in url:
                 url = response.urljoin(url)
@@ -27,7 +27,7 @@ class SbsSpider(scrapy.Spider):
                 pass
 
     def parse_items(self, response):
-        l = ItemLoader(item=SbsOverview(), selector=response)
+        l = ItemLoader(item=SbsItems(), selector=response)
         l.add_css('code', 'p>span::text')
         l.add_value('organisation', 'sbs')
         l.add_value('url', response.url)
