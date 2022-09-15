@@ -6,91 +6,32 @@
 import scrapy
 from scrapy.loader import ItemLoader
 from itemloaders.processors import MapCompose, TakeFirst
-import re
+from utilities import remove_reference, remove_fwork, get_start_date, get_end_date, extend, get_lot_number, \
+    get_lot_description, get_single_supplier, no_dot
+
+class SbsItemLoader(ItemLoader):
+    default_output_processor = TakeFirst()
+    code_in = MapCompose(remove_reference)
+    category_in = MapCompose(remove_fwork)
+    start_date_in = MapCompose(get_start_date)
+    end_date_in = MapCompose(get_end_date)
+    extension_options_in = MapCompose(extend)
+    lot_number_in = MapCompose(get_lot_number)
+    lot_description_in = MapCompose(get_lot_description, no_dot)
 
 
-def remove_reference(value):
-    return value.replace('Reference: ', '').strip()
-
-
-def remove_fwork(value):
-    return value.replace('Framework Agreements', '').strip()
-
-
-def get_start_date(value):
-    p = r"\d*?\s*?\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(" \
-        r"?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)\b\s\d\d\d\d"
-    dates = re.finditer(p, value, re.MULTILINE)
-    for i, date in enumerate(dates):
-        if i == 0:
-            return date.group()
-
-
-def get_end_date(value):
-    p1 = r"\d*?\s*?\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(" \
-         r"?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)\b\s(2022|2023|2024|2025|2026|2027|2028|2029)"
-    dates1 = re.finditer(p1, value, re.MULTILINE)
-
-    for i, date1 in enumerate(dates1):
-        if i == 0:
-            return date1.group()
-
-
-def extend(value):
-    p1 = r"\d+\s\bmonth(s*)\b"
-    p2 = r"(exten)"
-    result1 = re.search(p1, value)
-    result2 = re.search(p2, value)
-    if result2:
-        if result1:
-            return result1.group()
-        elif '1 year' in value:
-            return '12 months'
-        elif '2023' and '2025' in value:
-            return '24 months'
-        elif '2024' and '2026' in value:
-            return '24 months'
-        elif '2027' and '2023' in value:
-            return '48 months'
-        else:
-            pass
-
-
-def get_lot_number(value):
-    p = r"\b(?:LOT|Lot)\b\s\d+"
-    lot_numbers = re.findall(p, value, re.MULTILINE)
-    for i, numbers in enumerate(lot_numbers):
-        return numbers
-
-
-def get_lot_description(value):
-    p = r"\b(?:LOT|Lot)\b\s\d+"
-    result = re.search(p, value, re.MULTILINE)
-    if result:
-        return re.split(p, value, re.MULTILINE)
-
-
-def no_dot(value):
-    p = r"[a-zA-Z]"
-    result = re.findall(p, value)
-    if result:
-        return value
-
-
-def get_single_supplier(value):
-    pass
 
 
 class SbsItems(scrapy.Item):
-    code = scrapy.Field(input_processor=MapCompose(remove_reference), output_processor=TakeFirst())
-    organisation = scrapy.Field(output_processor=TakeFirst())
-    url = scrapy.Field(output_processor=TakeFirst())
-    category = scrapy.Field(input_processor=MapCompose(remove_fwork), output_processor=TakeFirst())
-    description = scrapy.Field(output_processor=TakeFirst())
-    framework_title = scrapy.Field(output_processor=TakeFirst())
-    start_date = scrapy.Field(input_processor=MapCompose(get_start_date), output_processor=TakeFirst())
-    end_date = scrapy.Field(input_processor=MapCompose(get_end_date), output_processor=TakeFirst())
-    extension_options = scrapy.Field(input_processor=MapCompose(extend), output_processor=TakeFirst())
-    lot_number = scrapy.Field(input_processor=MapCompose(get_lot_number))
-    lot_description = scrapy.Field(input_processor=MapCompose(get_lot_description, no_dot))
+    code = scrapy.Field()
+    organisation = scrapy.Field()
+    url = scrapy.Field()
+    category = scrapy.Field()
+    description = scrapy.Field()
+    framework_title = scrapy.Field()
+    start_date = scrapy.Field()
+    end_date = scrapy.Field()
+    extension_options = scrapy.Field()
+    lot_number = scrapy.Field()
+    lot_description = scrapy.Field()
     supplier_name = scrapy.Field()
