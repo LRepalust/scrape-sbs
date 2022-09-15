@@ -17,26 +17,23 @@ def remove_fwork(value):
     return value.replace('Framework Agreements', '').strip()
 
 
-def start_date(value):
+def get_start_date(value):
     p = r"\d*?\s*?\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(" \
-        r"?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)\b\s\d\d\d\d "
+        r"?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)\b\s\d\d\d\d"
     dates = re.finditer(p, value, re.MULTILINE)
     for i, date in enumerate(dates):
         if i == 0:
             return date.group()
-        elif i == 1:
-            pass
 
 
-def end_date(value):
-    p = r"\d*?\s*?\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(" \
-        r"?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)\b\s\d\d\d\d "
-    dates = re.finditer(p, value, re.MULTILINE)
-    for i, date in enumerate(dates):
-        if i == 1:
-            return date.group()
-        elif i == 0:
-            pass
+def get_end_date(value):
+    p1 = r"\d*?\s*?\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(" \
+         r"?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)\b\s(2022|2023|2024|2025|2026|2027|2028|2029)"
+    dates1 = re.finditer(p1, value, re.MULTILINE)
+
+    for i, date1 in enumerate(dates1):
+        if i == 0:
+            return date1.group()
 
 
 def extend(value):
@@ -84,7 +81,6 @@ def get_single_supplier(value):
     pass
 
 
-
 class SbsItems(scrapy.Item):
     code = scrapy.Field(input_processor=MapCompose(remove_reference), output_processor=TakeFirst())
     organisation = scrapy.Field(output_processor=TakeFirst())
@@ -92,8 +88,8 @@ class SbsItems(scrapy.Item):
     category = scrapy.Field(input_processor=MapCompose(remove_fwork), output_processor=TakeFirst())
     description = scrapy.Field(output_processor=TakeFirst())
     framework_title = scrapy.Field(output_processor=TakeFirst())
-    start_date = scrapy.Field(input_processor=MapCompose(start_date), output_processor=TakeFirst())
-    end_date = scrapy.Field(input_processor=MapCompose(end_date), output_processor=TakeFirst())
+    start_date = scrapy.Field(input_processor=MapCompose(get_start_date), output_processor=TakeFirst())
+    end_date = scrapy.Field(input_processor=MapCompose(get_end_date), output_processor=TakeFirst())
     extension_options = scrapy.Field(input_processor=MapCompose(extend), output_processor=TakeFirst())
     lot_number = scrapy.Field(input_processor=MapCompose(get_lot_number))
     lot_description = scrapy.Field(input_processor=MapCompose(get_lot_description, no_dot))
