@@ -1,3 +1,5 @@
+import re
+
 import scrapy
 from sbs.items import SbsItems
 from scrapy.loader import ItemLoader
@@ -15,14 +17,15 @@ class SbsSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse_services)
 
     def parse_services(self, response):
-        urls = response.css('p>a.a_body__link::attr(href)').getall()
-        for url in urls:
-            if '/fas' in url:
-                url = response.urljoin(url)
-                yield scrapy.Request(url=url, callback=self.parse_items)
-            elif '/ica' in url:
-                url = response.urljoin(url)
-                yield scrapy.Request(url=url, callback=self.parse_items)
+        framework_urls = response.css(
+            'a.a_body__link::attr(href)').getall()
+        for framework_url in framework_urls:
+            if '/fas' in framework_url:
+                framework_url = response.urljoin(framework_url)
+                yield scrapy.Request(url=framework_url, callback=self.parse_items)
+            elif '/ica' in framework_url:
+                framework_url = response.urljoin(framework_url)
+                yield scrapy.Request(url=framework_url, callback=self.parse_items)
             else:
                 pass
 
