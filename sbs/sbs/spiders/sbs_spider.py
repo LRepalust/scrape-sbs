@@ -16,7 +16,7 @@ class SbsSpider(scrapy.Spider):
             yield scrapy.Request(url=category_url, callback=self.parse_services)
 
     def parse_services(self, response):
-        framework_urls = response.css('a.a_body__link::attr(href)').re(r'/fas.*')
+        framework_urls = response.css('a.a_body__link::attr(href)').re(r'(/fas.*)|(/ica.*)')
         for framework_url in framework_urls:
             framework_url = response.urljoin(framework_url)
             yield scrapy.Request(url=framework_url, callback=self.parse_items)
